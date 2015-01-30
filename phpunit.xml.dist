@@ -23,6 +23,7 @@
         <blacklist>
             <directory suffix=".php">./src/locale</directory>
             <file>./src/DateException.php</file>
+            <file>./src/DateTimeInterface.php</file>
         </blacklist>
     </filter>
     <logging>
