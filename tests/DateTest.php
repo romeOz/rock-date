@@ -34,6 +34,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
     public function testFormat()
     {
         $this->assertSame(date('j  n  Y'), (new DateTime)->format('j  n  Y'));
+        $this->assertSame(date('j  n  Y'), DateTime::set(null)->format('j  n  Y'));
         $this->assertSame(date('Y-m-d H:i:s'), (new DateTime)->format());
         $this->assertSame(date('Y-m-d H:i:s'), DateTime::set()->format());
     }
@@ -68,6 +69,10 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $this->assertNotEmpty($dateTime->getLocale()->getMonths());
         $this->assertNotEmpty($dateTime->getLocale()->getWeekDays());
         $this->assertNotEmpty($dateTime->getLocale()->getShortWeekDays());
+
+        // unknown
+        $dateTime->locale('unknown');
+        $this->assertSame($dateTime->format('j  F  Y'), '12  November  1988');
     }
 
     public function testAgo()
@@ -203,5 +208,16 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
             (new DateTime('2008-12-02 10:21:00'))->convertTimezone('America/Chicago')->isoDatetime(),
             (new DateTime('2008-12-02 10:21:00'))->convertTimezone(new \DateTimeZone('Europe/Volgograd'))->isoDatetime()
         );
+    }
+
+    public function testMicrotime()
+    {
+        $this->assertInternalType('float', DateTime::microtime());
+        $this->assertSame(1422608086.944284, DateTime::microtime('0.94428400 1422608086'));
+    }
+
+    public function testMillitime()
+    {
+        $this->assertInternalType('float', DateTime::millitime());
     }
 }
