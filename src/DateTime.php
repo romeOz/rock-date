@@ -302,14 +302,11 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
     /**
      * Conversion in accordance with the client.
      *
-     * @param string|DateTimeZone|null $timezone
+     * @param string|DateTimeZone $timezone
      * @return $this|\DateTime
      */
-    public function convertTimezone($timezone = null)
+    public function convertTimezone($timezone)
     {
-        if (!isset($timezone)) {
-            return $this;
-        }
         return parent::setTimezone($this->calculateTimezone($timezone));
     }
 
