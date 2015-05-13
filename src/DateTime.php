@@ -279,20 +279,22 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
             }
             $datetime2 = new \DateTime($datetime2);
         }
+
         if (($interval = parent::diff($datetime2, $absolute)) === false){
             return false;
         }
-        $sign = $interval->invert;
+
+        $sign = $absolute ? parent::diff($datetime2)->invert : $interval->invert;
         $days = $interval->days;
-        // calculate seconds
         $interval->s = $datetime2->getTimestamp() - $this->getTimestamp();
-        $interval->i = $this->addSign($sign, floor($interval->s / 60));
-        $interval->h = $this->addSign($sign, floor($interval->s / (60 * 60)));
-        $interval->d = $this->addSign($sign, $days);
-        $interval->w = $this->addSign($sign, floor($days / 7));
-        $interval->m = $this->addSign($sign, floor($days / $this->format('t')));
-        $interval->y = $this->addSign($sign, $interval->y);
-        $interval->s = $this->addSign($sign, $interval->s);
+        $interval->i = $this->addSign($interval->invert, floor($interval->s / 60));
+        $interval->h = $this->addSign($interval->invert, floor($interval->s / (60 * 60)));
+        $interval->d = $this->addSign($interval->invert, $days);
+        $interval->w = $this->addSign($interval->invert, floor($days / 7));
+        $daysMonth = $sign ? $datetime2->format('t') : $this->format('t');
+        $interval->m = $this->addSign($interval->invert, floor($days / $daysMonth));
+        $interval->y = $this->addSign($interval->invert, $interval->y);
+        $interval->s = $this->addSign($interval->invert, $interval->s);
 
         return $interval;
     }

@@ -120,7 +120,23 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($diff->m, 1);
         $this->assertSame($diff->d, 28);
 
+        $diff = (new DateTime('2015-03-01 00:00:00'))->diff(new DateTime('2015-02-01 00:00:00'));
+        $this->assertSame($diff->m, -1);
+        $this->assertSame($diff->d, -28);
+
+        $diff = (new DateTime('2015-03-01 00:00:00'))->diff(new DateTime('2015-02-01 00:00:00'), true);
+        $this->assertSame($diff->m, 1);
+        $this->assertSame($diff->d, 28);
+
         $diff = (new DateTime('2015-01-01 00:00:00'))->diff(new DateTime('2015-02-01 00:00:00'));
+        $this->assertSame($diff->m, 1);
+        $this->assertSame($diff->d, 31);
+
+        $diff = (new DateTime('2015-02-01 00:00:00'))->diff(new DateTime('2015-01-01 00:00:00'));
+        $this->assertSame($diff->m, -1);
+        $this->assertSame($diff->d, -31);
+
+        $diff = (new DateTime('2015-02-01 00:00:00'))->diff(new DateTime('2015-01-01 00:00:00'), true);
         $this->assertSame($diff->m, 1);
         $this->assertSame($diff->d, 31);
     }
