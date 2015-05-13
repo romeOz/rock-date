@@ -290,7 +290,7 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         $interval->h = $this->addSign($sign, floor($interval->s / (60 * 60)));
         $interval->d = $this->addSign($sign, $days);
         $interval->w = $this->addSign($sign, floor($days / 7));
-        $interval->m = $this->addSign($sign, floor($days / 30));
+        $interval->m = $this->addSign($sign, floor($days / $this->format('t')));
         $interval->y = $this->addSign($sign, $interval->y);
         $interval->s = $this->addSign($sign, $interval->s);
 
