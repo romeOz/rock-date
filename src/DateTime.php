@@ -285,17 +285,15 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         $sign = $interval->invert;
         $days = $interval->days;
         // calculate seconds
-        $seconds = $days * 24 * 60 * 60;
-        $seconds += $interval->h * 60 * 60;
-        $seconds += $interval->i * 60;
-        $seconds += $interval->s;
-        $interval->i = $this->addSign($sign, floor($seconds / 60));
-        $interval->h = $this->addSign($sign, floor($seconds / (60 * 60)));
+        $interval->s = $datetime2->getTimestamp() - $this->getTimestamp();
+        $interval->i = $this->addSign($sign, floor($interval->s / 60));
+        $interval->h = $this->addSign($sign, floor($interval->s / (60 * 60)));
         $interval->d = $this->addSign($sign, $days);
         $interval->w = $this->addSign($sign, floor($days / 7));
         $interval->m = $this->addSign($sign, floor($days / 30));
         $interval->y = $this->addSign($sign, $interval->y);
-        $interval->s = $this->addSign($sign, $seconds);
+        $interval->s = $this->addSign($sign, $interval->s);
+
         return $interval;
     }
 
