@@ -244,4 +244,10 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertInternalType('float', DateTime::millitime());
     }
+
+    public function testToString()
+    {
+        echo (new DateTime('02-02-1950'))->defaultFormat('d.m.Y');
+        $this->expectOutputString('02.02.1950');
+    }
 }

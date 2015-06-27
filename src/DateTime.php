@@ -337,8 +337,8 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
             return false;
         }
         return ((string)(int)$timestamp === (string)$timestamp)
-               && ($timestamp <= PHP_INT_MAX)
-               && ($timestamp >= ~PHP_INT_MAX);
+        && ($timestamp <= PHP_INT_MAX)
+        && ($timestamp >= ~PHP_INT_MAX);
     }
 
     /**
@@ -479,5 +479,10 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
             'ru-ru' => Ru::className(),
             'ua' => Ua::className(),
         ];
+    }
+
+    public function __toString()
+    {
+        return $this->format();
     }
 }
