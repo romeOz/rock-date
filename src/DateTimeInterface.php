@@ -11,7 +11,7 @@ namespace rock\date;
  * @method isoTime() Get date in Date::$formats['isoTime'] format
  * @method isoDatetime() Get date in Date::$formats['isoDatetime'] format
  */
-interface DateTimeInterface 
+interface DateTimeInterface
 {
     const USER_DATE_FORMAT = 'date';
     const USER_TIME_FORMAT = 'time';

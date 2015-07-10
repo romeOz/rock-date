@@ -11,7 +11,6 @@ use rock\date\locale\EnUK;
 use rock\date\locale\Locale;
 use rock\date\locale\Ru;
 use rock\date\locale\Ua;
-use rock\di\Container;
 use rock\helpers\Inflector;
 use rock\helpers\StringHelper;
 
@@ -52,7 +51,7 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         self::ISO_TIME_FORMAT => 'H:i:s',
         self::ISO_DATETIME_FORMAT => 'Y-m-d H:i:s',
         self::JS_FORMAT => self::RFC1123,
-        self::W3C_FORMAT=> self::W3C,
+        self::W3C_FORMAT => self::W3C,
 
     ];
     /** @var Locale[] */
@@ -64,9 +63,9 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
     protected static $formatOptionsCallbacks = [];
 
     /**
-     * @param string|int          $time
+     * @param string|int $time
      * @param string|\DateTimeZone $timezone
-     * @param array               $config
+     * @param array $config
      */
     public function __construct($time = 'now', $timezone = null, array $config = [])
     {
@@ -89,9 +88,9 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
     /**
      * Modify date.
      *
-     * @param string|int $time    time for modify
-     * @param string|\DateTimeZone        $timezone
-     * @param array       $config  the configuration. It can be either a string representing the class name
+     * @param string|int $time time for modify
+     * @param string|\DateTimeZone $timezone
+     * @param array $config the configuration. It can be either a string representing the class name
      *                             or an array representing the object configuration.
      * @throws \rock\di\ContainerException
      * @return $this
@@ -102,8 +101,8 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
             $time = 'now';
         }
         if (class_exists('\rock\di\Container')) {
-            $config['class'] = self::className();
-            return Container::load($time, $timezone, $config);
+            $config['class'] = static::className();
+            return \rock\di\Container::load($config, [$time, $timezone]);
         }
         return new static($time, $timezone, $config);
     }
@@ -168,7 +167,7 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
     public function __call($name, $params)
     {
         $name = $this->getCustomFormat($name);
-        if(!$name) {
+        if (!$name) {
             throw new DateException("There is no method or format with name: {$name}");
         }
         return $this->format($name);
@@ -268,7 +267,7 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
     /**
      * Returns the difference between two DateTime objects.
      * @param string|int|\DateTime $datetime2
-     * @param bool      $absolute
+     * @param bool $absolute
      * @return bool|\DateInterval
      */
     public function diff($datetime2, $absolute = false)
@@ -280,7 +279,7 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
             $datetime2 = new \DateTime($datetime2);
         }
 
-        if (($interval = parent::diff($datetime2, $absolute)) === false){
+        if (($interval = parent::diff($datetime2, $absolute)) === false) {
             return false;
         }
 
@@ -348,7 +347,7 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
      */
     public static function microtime($microtime = null)
     {
-        list($usec, $sec) = explode(" ", $microtime ? : microtime());
+        list($usec, $sec) = explode(" ", $microtime ?: microtime());
         return (float)$usec + (float)$sec;
     }
 
@@ -379,7 +378,7 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         }
         $key = $timezone instanceof \DateTimeZone ? $timezone->getName() : $timezone;
         // lazy loading
-        if(!isset(static::$timezonesInstances[$key])) {
+        if (!isset(static::$timezonesInstances[$key])) {
             static::$timezonesInstances[$key] = is_string($timezone) ? new \DateTimezone($timezone) : $timezone;
         }
         return static::$timezonesInstances[$key];
@@ -390,14 +389,14 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         if ($format instanceof \Closure) {
             return call_user_func($format, $this);
         }
-        $format = $this->getCustomFormat($format) ? : $format;
+        $format = $this->getCustomFormat($format) ?: $format;
 
         if ($format instanceof \Closure) {
             return call_user_func($format, $this);
         }
         $isStashed = $this->stashCustomFormatOptions($format);
         $result = parent::format($format);
-        if($isStashed) {
+        if ($isStashed) {
             $this->applyCustomFormatOptions($result);
         }
         return $result;
@@ -420,19 +419,19 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
     protected function defaultOption()
     {
         return [
-            'F' => function(DateTime $datetime){
+            'F' => function (DateTime $datetime) {
                 return $datetime->getLocale()->getMonth($datetime->format('n') - 1);
             },
-            'M' => function(DateTime $datetime){
+            'M' => function (DateTime $datetime) {
                 return $datetime->getLocale()->getShortMonth($datetime->format('n') - 1);
             },
-            'l' => function(DateTime $datetime){
+            'l' => function (DateTime $datetime) {
                 return $datetime->getLocale()->getWeekDay($datetime->format('N') - 1);
             },
-            'D' => function(DateTime $datetime){
+            'D' => function (DateTime $datetime) {
                 return $datetime->getLocale()->getShortWeekDay($datetime->format('N') - 1);
             },
-            'ago' => function(DateTime $datetime){
+            'ago' => function (DateTime $datetime) {
                 $diff = $datetime->diff(new DateTime());
                 $locale = $datetime->getLocale();
                 if ($diff->y >= 1) {

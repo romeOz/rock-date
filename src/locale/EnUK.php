@@ -14,7 +14,7 @@ class EnUK extends Locale
     protected $hour = ['hour', 'hours', 'hours'];
     protected $minute = ['minute', 'minutes', 'minutes'];
     protected $second = ['second', 'seconds', 'seconds'];
-        protected $months = [
+    protected $months = [
         'January', 'February', 'March', 'April', 'May', 'June', 'Jule', 'August', 'September', 'October', 'November',
         'December'
     ];
