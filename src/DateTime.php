@@ -268,7 +268,7 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
      * Returns the difference between two DateTime objects.
      * @param string|int|\DateTime $datetime2
      * @param bool $absolute
-     * @return bool|\DateInterval
+     * @return bool|DateInterval
      */
     public function diff($datetime2, $absolute = false)
     {
@@ -284,18 +284,18 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         }
 
         $sign = $absolute ? parent::diff($datetime2)->invert : $interval->invert;
-        $days = $interval->days;
-        $interval->s = $datetime2->getTimestamp() - $this->getTimestamp();
-        $interval->i = $this->addSign($interval->invert, floor($interval->s / 60));
-        $interval->h = $this->addSign($interval->invert, floor($interval->s / (60 * 60)));
-        $interval->d = $this->addSign($interval->invert, $days);
-        $interval->w = $this->addSign($interval->invert, floor($days / 7));
-        $daysMonth = $sign ? $datetime2->format('t') : $this->format('t');
-        $interval->m = $this->addSign($interval->invert, floor($days / $daysMonth));
-        $interval->y = $this->addSign($interval->invert, $interval->y);
-        $interval->s = $this->addSign($interval->invert, $interval->s);
+        $selfinterval = new DateInterval("P{$interval->y}Y{$interval->m}M{$interval->d}DT{$interval->h}H{$interval->i}M{$interval->s}S");
+        $days = $selfinterval->total_days = $interval->days;
+        $selfinterval->invert = $interval->invert;
 
-        return $interval;
+        $selfinterval->total_seconds = $datetime2->getTimestamp() - $this->getTimestamp();
+        $selfinterval->total_minutes = (int)floor($selfinterval->total_seconds / 60);
+        $selfinterval->total_hours = (int)floor($selfinterval->total_seconds / (60 * 60));
+        $selfinterval->total_weeks = (int)floor($days / 7);
+        $daysMonth = $sign ? $datetime2->format('t') : $this->format('t');
+        $selfinterval->total_months = (int)floor($days / $daysMonth);
+
+        return $selfinterval;
     }
 
     /**

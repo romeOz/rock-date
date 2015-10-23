@@ -108,37 +108,49 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
     public function testDiff()
     {
         $dateTime = new DateTime('1988-11-12');
-        $this->assertSame($dateTime->diff(time())->w, (int)floor($dateTime->diff(time())->days / 7));
+        $this->assertSame($dateTime->diff(time())->total_weeks, (int)floor($dateTime->diff(time())->total_days / 7));
+        $this->assertSame('+' . ((int)floor($dateTime->diff(time())->total_days / 7)) . ' weeks', $dateTime->diff(time())->format('%R%tw weeks'));
 
-        $dateInterval = $dateTime->diff('1988-11-12');
-        $this->assertSame($dateInterval->w, (int)floor($dateInterval->days / 7) * -1);
+        $dateInterval = $dateTime->diff('1988-10-12');
+        $this->assertSame($dateInterval->total_weeks, (int)floor($dateInterval->total_days / 7));
+        $this->assertSame('-4 weeks', $dateInterval->format('%R%tw weeks'));
 
-        $dateInterval = $dateTime->diff('1988-11-12', true);
-        $this->assertSame($dateInterval->w, (int)floor($dateInterval->days / 7));
+        $dateInterval = $dateTime->diff('1988-10-12', true);
+        $this->assertSame($dateInterval->total_weeks, (int)floor($dateInterval->total_days / 7));
+        $this->assertSame('+4 weeks', $dateInterval->format('%R%tw weeks'));
 
         $diff = (new DateTime('2015-02-01 00:00:00'))->diff(new DateTime('2015-03-01 00:00:00'));
-        $this->assertSame($diff->m, 1);
-        $this->assertSame($diff->d, 28);
+
+        $this->assertSame('+1 1', $diff->format('%R%m %tm'));
+        $this->assertSame('+0 28', $diff->format('%R%d %a'));
+
 
         $diff = (new DateTime('2015-03-01 00:00:00'))->diff(new DateTime('2015-02-01 00:00:00'));
-        $this->assertSame($diff->m, -1);
-        $this->assertSame($diff->d, -28);
+        $this->assertSame('-1 1', $diff->format('%R%m %tm'));
+        $this->assertSame('-0 28', $diff->format('%R%d %a'));
 
         $diff = (new DateTime('2015-03-01 00:00:00'))->diff(new DateTime('2015-02-01 00:00:00'), true);
-        $this->assertSame($diff->m, 1);
-        $this->assertSame($diff->d, 28);
+        $this->assertSame('+1 1', $diff->format('%R%m %tm'));
+        $this->assertSame('+0 28', $diff->format('%R%d %a'));
 
         $diff = (new DateTime('2015-01-01 00:00:00'))->diff(new DateTime('2015-02-01 00:00:00'));
+        $this->assertSame($diff->total_months, 1);
         $this->assertSame($diff->m, 1);
-        $this->assertSame($diff->d, 31);
+        $this->assertSame($diff->total_days, 31);
+        $this->assertSame('+1 1', $diff->format('%R%m %tm'));
+        $this->assertSame('+0 31', $diff->format('%R%d %a'));
 
         $diff = (new DateTime('2015-02-01 00:00:00'))->diff(new DateTime('2015-01-01 00:00:00'));
-        $this->assertSame($diff->m, -1);
-        $this->assertSame($diff->d, -31);
-
-        $diff = (new DateTime('2015-02-01 00:00:00'))->diff(new DateTime('2015-01-01 00:00:00'), true);
         $this->assertSame($diff->m, 1);
-        $this->assertSame($diff->d, 31);
+        $this->assertSame($diff->total_days, 31);
+        $this->assertSame('-1 1', $diff->format('%R%m %tm'));
+        $this->assertSame('-0 31', $diff->format('%R%d %a'));
+
+        $diff = (new DateTime('2015-02-01'))->diff(new DateTime('2015-01-01'));
+        $this->assertSame($diff->m, 1);
+        $this->assertSame($diff->total_days, 31);
+        $this->assertSame('-1 1', $diff->format('%R%m %tm'));
+        $this->assertSame('-0 31', $diff->format('%R%d %a'));
     }
 
     /**
