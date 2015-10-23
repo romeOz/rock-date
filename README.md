@@ -4,6 +4,7 @@ A simple DateTime library for PHP
 [![Latest Stable Version](https://poser.pugx.org/romeOz/rock-date/v/stable.svg)](https://packagist.org/packages/romeOz/rock-date)
 [![Total Downloads](https://poser.pugx.org/romeOz/rock-date/downloads.svg)](https://packagist.org/packages/romeOz/rock-date)
 [![Build Status](https://travis-ci.org/romeOz/rock-date.svg?branch=master)](https://travis-ci.org/romeOz/rock-date)
+[![HHVM Status](http://hhvm.h4cc.de/badge/romeoz/rock-date.svg)](http://hhvm.h4cc.de/package/romeoz/rock-date)
 [![Coverage Status](https://coveralls.io/repos/romeOz/rock-date/badge.svg?branch=master)](https://coveralls.io/r/romeOz/rock-date?branch=master)
 [![License](https://poser.pugx.org/romeOz/rock-date/license.svg)](https://packagist.org/packages/romeOz/rock-date)
 
