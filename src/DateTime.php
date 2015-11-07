@@ -25,25 +25,21 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         ObjectTrait::__construct as parentConstruct;
     }
 
-    const DEFAULT_FORMAT = 'Y-m-d H:i:s';
-
     /**
-     * Default format: {@see \rock\date\DateTime::DEFAULT_FORMAT}.
+     * Default format.
      * @var string
      */
-    public $format = self::DEFAULT_FORMAT;
+    protected $defaultFormat = 'Y-m-d H:i:s';
     /**
-     * Current locale.
-     * @var string
+     * List locales {@see \rock\date\locale\Locale}.
+     * @var Locale[]
      */
-    public $locale = 'en';
+    protected $locales = [];
     /**
-     * List locales.
+     * List formats.
      * @var array
      */
-    public $locales = [];
-    public $formats = [];
-    protected $defaultFormats = [
+    protected $formats = [
         self::USER_DATE_FORMAT => 'm/d/Y',
         self::USER_TIME_FORMAT => 'g:i A',
         self::USER_DATETIME_FORMAT => 'm/d/Y g:i A',
@@ -52,15 +48,12 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         self::ISO_DATETIME_FORMAT => 'Y-m-d H:i:s',
         self::JS_FORMAT => self::RFC1123,
         self::W3C_FORMAT => self::W3C,
-
     ];
-    /** @var Locale[] */
-    protected static $localeInstances;
-    /** @var \DateTimezone[] */
-    protected static $timezonesInstances = [];
-    protected static $formatOptionsNames = [];
-    protected static $formatOptionsPlaceholders = [];
-    protected static $formatOptionsCallbacks = [];
+    /**
+     * Current locale.
+     * @var string
+     */
+    protected $locale = 'en';
 
     /**
      * @param string|int $time
@@ -69,19 +62,16 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
      */
     public function __construct($time = 'now', $timezone = null, array $config = [])
     {
+        $this->parentConstruct($config);
         if (static::isTimestamp($time)) {
             $time = '@' . (string)$time;
         }
-        $this->parentConstruct($config);
-
         parent::__construct($time, $this->calculateTimezone($timezone));
 
-        $this->locale = strtolower($this->locale);
-        $this->formats = array_merge($this->defaultFormats, $this->formats);
         $this->locales = array_merge($this->defaultLocales(), $this->locales);
 
-        foreach ($this->defaultOption() as $alias => $callback) {
-            $this->addFormatOption($alias, $callback);
+        foreach ($this->defaultFormatOptions() as $name => $callback) {
+            $this->setFormatOption($name, $callback);
         }
     }
 
@@ -108,6 +98,144 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
     }
 
     /**
+     * Sets a locale.
+     * @param Locale|string $locale
+     * @return $this
+     */
+    public function setLocale($locale)
+    {
+        if ($locale instanceof Locale) {
+            $this->locale = $locale;
+            return $this;
+        }
+        $this->locale = strtolower($locale);
+        return $this;
+    }
+
+    /** @var Locale[] */
+    protected static $localeInstances;
+
+    /**
+     * Returns a locale instance.
+     * @return Locale
+     */
+    public function getLocale()
+    {
+        if ($this->locale instanceof Locale) {
+            return $this->locale;
+        }
+        if (!isset($this->locales[$this->locale])) {
+            $this->locale = 'en';
+        }
+        // lazy loading
+        if (isset(static::$localeInstances[$this->locale])) {
+            return static::$localeInstances[$this->locale];
+        }
+        return static::$localeInstances[$this->locale] = new $this->locales[$this->locale];
+    }
+
+    /**
+     * Adds a list locales {@see \rock\date\locale\Locale}.
+     * @param Locale[] $locales
+     * @return $this
+     */
+    public function setLocales(array $locales)
+    {
+        $this->locales = array_merge($this->locales, $locales);
+        return $this;
+    }
+
+    /**
+     * Sets a default format.
+     * @param string $format
+     * @return $this
+     * @see \rock\date\Datetime::$defaultFormat
+     */
+    public function setDefaultFormat($format)
+    {
+        $this->defaultFormat = $format;
+        return $this;
+    }
+
+    /**
+     * Returns a default format.
+     * @return string
+     */
+    public function getDefaultFormat()
+    {
+        return $this->defaultFormat;
+    }
+
+    /**
+     * Adds a list formats.
+     * @param array $formats list formats.
+     * @return $this
+     */
+    public function setFormats(array $formats)
+    {
+        $this->formats = array_merge($this->formats, $formats);
+        return $this;
+    }
+
+    /**
+     * Returns a format by name.
+     * @param $name string
+     * @return string|null
+     */
+    public function getFormat($name)
+    {
+        if (isset($this->formats[$name])) {
+            return $this->formats[$name];
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns a list formats.
+     * @return array
+     */
+    public function getFormats()
+    {
+        return $this->formats;
+    }
+
+    /**
+     * Adds a format options.
+     * @param array $options
+     * @return $this
+     */
+    public function setFormatOptions(array $options)
+    {
+        foreach ($options as $name => $handler) {
+            $this->setFormatOption($name, $handler);
+        }
+        return $this;
+    }
+
+    protected static $formatOptionsNames = [];
+    protected static $formatOptionsPlaceholders = [];
+    protected static $formatOptionsHandlers = [];
+
+    /**
+     * Adds a format option.
+     * @param string $name name of option.
+     * @param callable $handler
+     * @return $this
+     * @throws DateException
+     */
+    public function setFormatOption($name, callable $handler)
+    {
+        if (in_array($name, static::$formatOptionsNames)) {
+            return $this;
+        }
+        static::$formatOptionsNames[] = $name;
+        static::$formatOptionsPlaceholders[] = '~' . count(static::$formatOptionsPlaceholders) . '~';
+        static::$formatOptionsHandlers[] = $handler;
+        return $this;
+    }
+
+    /**
      * Returns formatting date.
      *
      * @param string|null $format http://php.net/date format or format name. Default value is current
@@ -116,7 +244,7 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
     public function format($format = null)
     {
         if (empty($format)) {
-            $format = $this->format;
+            $format = $this->defaultFormat;
         }
         return $this->formatDatetimeObject($format);
     }
@@ -152,119 +280,6 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
     }
 
     /**
-     * Returns formatting date.
-     *
-     * ```php
-     * $datetime = new DateTime();
-     * $datetime->addFormat('shortDate', 'd/m');
-     * $datetime->shortDate();
-     * ```
-     * @param string $name
-     * @param $params
-     * @throws DateException
-     * @return string
-     */
-    public function __call($name, $params)
-    {
-        $name = $this->getCustomFormat($name);
-        if (!$name) {
-            throw new DateException("There is no method or format with name: {$name}");
-        }
-        return $this->format($name);
-    }
-
-    /**
-     * Set default format. Default {@see \rock\date\DateTime::DEFAULT_FORMAT}.
-     * @param $format
-     * @return $this
-     * @see \rock\date\DateTime::$format
-     */
-    public function defaultFormat($format)
-    {
-        $this->format = $format;
-        return $this;
-    }
-
-    /**
-     * Adds custom format.
-     * @param string $name
-     * @param string $format
-     */
-    public function addCustomFormat($name, $format)
-    {
-        $this->formats[$name] = $format;
-    }
-
-    /**
-     * Return custom format by name.
-     * @param $name string
-     * @return string|null
-     */
-    public function getCustomFormat($name)
-    {
-        if (isset($this->formats[$name])) {
-            return $this->formats[$name];
-        }
-
-        return null;
-    }
-
-    /**
-     * Return list custom formats.
-     * @return array
-     */
-    public function getCustomFormats()
-    {
-        return $this->formats;
-    }
-
-    /**
-     * Adds option.
-     * @param string $name
-     * @param callable $callback
-     * ```function (DataTime $dataTime) {}```
-     * @throws DateException
-     */
-    public function addFormatOption($name, callable $callback)
-    {
-        if (in_array($name, static::$formatOptionsNames)) {
-            return;
-        }
-        static::$formatOptionsNames[] = $name;
-        static::$formatOptionsPlaceholders[] = '~' . count(static::$formatOptionsPlaceholders) . '~';
-        static::$formatOptionsCallbacks[] = $callback;
-    }
-
-    /**
-     * Returns instance i18n locale.
-     * @return Locale
-     */
-    public function getLocale()
-    {
-        // lazy loading
-        if (empty(static::$localeInstances[$this->locale])) {
-            if (!isset($this->locales[$this->locale])) {
-                $this->locale = 'en';
-            }
-            static::$localeInstances[$this->locale] = new $this->locales[$this->locale];
-        }
-
-        return static::$localeInstances[$this->locale];
-    }
-
-    /**
-     * Set locale.
-     * @param string $locale
-     * @return $this
-     * @see \rock\date\DateTime::$locale
-     */
-    public function locale($locale)
-    {
-        $this->locale = $locale;
-        return $this;
-    }
-
-    /**
      * Returns the difference between two DateTime objects.
      * @param string|int|\DateTime $datetime2
      * @param bool $absolute
@@ -296,6 +311,28 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         $selfinterval->total_months = (int)floor($days / $daysMonth);
 
         return $selfinterval;
+    }
+
+    /**
+     * Returns formatting date.
+     *
+     * ```php
+     * $datetime = new DateTime();
+     * $datetime->addFormat('shortDate', 'd/m');
+     * $datetime->shortDate();
+     * ```
+     * @param string $name
+     * @param $params
+     * @throws DateException
+     * @return string
+     */
+    public function __call($name, $params)
+    {
+        $name = $this->getFormat($name);
+        if (!$name) {
+            throw new DateException("There is no method or format with name: {$name}");
+        }
+        return $this->format($name);
     }
 
     /**
@@ -365,6 +402,9 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         return !$sign ? (int)$value : (int)$value * -1;
     }
 
+    /** @var \DateTimezone[] */
+    protected static $timezonesInstances = [];
+
     /**
      * Returns {@see \DateTimezone} by timezone.
      *
@@ -389,34 +429,34 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
         if ($format instanceof \Closure) {
             return call_user_func($format, $this);
         }
-        $format = $this->getCustomFormat($format) ?: $format;
+        $format = $this->getFormat($format) ?: $format;
 
         if ($format instanceof \Closure) {
             return call_user_func($format, $this);
         }
-        $isStashed = $this->stashCustomFormatOptions($format);
+        $isStashed = $this->stashFormatOptions($format);
         $result = parent::format($format);
         if ($isStashed) {
-            $this->applyCustomFormatOptions($result);
+            $this->calculateFormatOptions($result);
         }
         return $result;
     }
 
-    protected function stashCustomFormatOptions(&$format)
+    protected function stashFormatOptions(&$format)
     {
         $format = str_replace(static::$formatOptionsNames, static::$formatOptionsPlaceholders, $format, $count);
         return (bool)$count;
     }
 
-    protected function applyCustomFormatOptions(&$format)
+    protected function calculateFormatOptions(&$format)
     {
-        $formatOptionsCallbacks = static::$formatOptionsCallbacks;
+        $formatOptionsCallbacks = static::$formatOptionsHandlers;
         $format = preg_replace_callback('/~(\d+)~/', function ($matches) use ($formatOptionsCallbacks) {
             return call_user_func($formatOptionsCallbacks[$matches[1]], $this);
         }, $format);
     }
 
-    protected function defaultOption()
+    protected function defaultFormatOptions()
     {
         return [
             'F' => function (DateTime $datetime) {
@@ -437,23 +477,23 @@ class DateTime extends \DateTime implements DateTimeInterface, ObjectInterface
                 if ($diff->y >= 1) {
                     $number = $diff->y;
                     $names = $locale->getYearNames();
-                } elseif ($diff->m >= 1) {
-                    $number = $diff->m;
+                } elseif ($diff->total_months >= 1) {
+                    $number = $diff->total_months;
                     $names = $locale->getMonthNames();
-                } elseif ($diff->d >= 7) {
-                    $number = $diff->w;
+                } elseif ($diff->total_days >= 7) {
+                    $number = $diff->total_weeks;
                     $names = $locale->getWeekNames();
-                } elseif ($diff->d >= 1) {
-                    $number = $diff->d;
+                } elseif ($diff->total_days >= 1) {
+                    $number = $diff->total_days;
                     $names = $locale->getDayNames();
-                } elseif ($diff->h >= 1) {
-                    $number = $diff->h;
+                } elseif ($diff->total_hours >= 1) {
+                    $number = $diff->total_hours;
                     $names = $locale->getHourNames();
-                } elseif ($diff->i >= 1) {
-                    $number = $diff->i;
+                } elseif ($diff->total_minutes >= 1) {
+                    $number = $diff->total_minutes;
                     $names = $locale->getMinuteNames();
                 } else {
-                    $number = $diff->s;
+                    $number = $diff->total_seconds;
                     $names = $locale->getSecondNames();
                 }
                 $options = $locale->getOptions();

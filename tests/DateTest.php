@@ -47,7 +47,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
         // set default format
         $dateTime = new DateTime;
-        $dateTime->defaultFormat('j  n  Y');
+        $dateTime->setDefaultFormat('j  n  Y');
         $this->assertSame(date('j  n  Y'), $dateTime->format());
 
         // unknown format
@@ -58,7 +58,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
     public function testLocal()
     {
         $dateTime = new DateTime('1988-11-12');
-        $dateTime->locale('ru');
+        $dateTime->setLocale('ru');
         $this->assertSame($dateTime->format('j  F  Y'), '12  ноября  1988');
         $this->assertSame($dateTime->format('j  M  Y'), '12  ноя  1988');
         $this->assertSame($dateTime->format('j  l  Y'), '12  суббота  1988');
@@ -71,7 +71,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $this->assertNotEmpty($dateTime->getLocale()->getShortWeekDays());
 
         // unknown
-        $dateTime->locale('unknown');
+        $dateTime->setLocale('unknown');
         $this->assertSame($dateTime->format('j  F  Y'), '12  November  1988');
     }
 
@@ -79,28 +79,28 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
     {
         $y = DateTime::set('2012-01-24')->diff(DateTime::set())->y;
         $name = Inflector::plural($y, (new Ru())->getYearNames());
-        $this->assertSame("{$y} {$name} назад", DateTime::set('2012-01-24')->locale('ru')->format('ago'));
+        $this->assertSame("{$y} {$name} назад", DateTime::set('2012-01-24')->setLocale('ru')->format('ago'));
     }
 
     public function testAddCustomFormat()
     {
         $datetime = DateTime::set('1988-11-12');
-        $datetime->addCustomFormat('shortDate', 'j / F / Y');
+        $datetime->setFormats(['shortDate' =>'j / F / Y']);
         $this->assertSame('12 / November / 1988', $datetime->shortDate());
-        $this->assertArrayHasKey('shortDate', $datetime->getCustomFormats());
+        $this->assertArrayHasKey('shortDate', $datetime->getFormats());
     }
 
     public function testAddFormatOption()
     {
         $datetime = new DateTime('1988-11-12');
-        $datetime->addFormatOption('go', function (DateTime $datetime) {
+        $datetime->setFormatOption('go', function (DateTime $datetime) {
             return floor((time() - $datetime->getTimestamp()) / 86400) . ' days ago';
         });
         $ago = floor((time() - $datetime->getTimestamp()) / 86400);
         $this->assertSame("12 November 1988, {$ago} days ago", $datetime->format('d F Y, go'));
 
         // duplicate
-        $datetime->addFormatOption('go', function (DateTime $datetime) {
+        $datetime->setFormatOption('go', function (DateTime $datetime) {
             return floor((time() - $datetime->getTimestamp()) / 86400) . ' days ago';
         });
     }
@@ -259,7 +259,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     public function testToString()
     {
-        echo (new DateTime('02-02-1950'))->defaultFormat('d.m.Y');
+        echo (new DateTime('02-02-1950'))->setDefaultFormat('d.m.Y');
         $this->expectOutputString('02.02.1950');
     }
 }
