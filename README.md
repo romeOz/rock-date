@@ -34,7 +34,9 @@ Installation
 
 From the Command Line:
 
-`composer require romeoz/rock-date`
+```
+composer require romeoz/rock-date
+```
 
 In your composer.json:
 
@@ -66,7 +68,7 @@ Custom format
 
 ```php
 $datetime = DateTime::set('1988-11-12');
-$datetime->addCustomFormat('shortDate', 'j / F / Y');
+$datetime->setFormats(['shortDate' => 'j / F / Y']);
 
 $datetime->shortDate(); // output: 12 / November / 1988
 ```
@@ -76,7 +78,7 @@ Custom option format
 
 ```php
 $datetime = new DateTime('1988-11-12');
-$datetime->addFormatOption('ago', function (DateTime $datetime) {
+$datetime->setFormatOption('ago', function (DateTime $datetime) {
     return floor((time() - $datetime->getTimestamp()) / 86400) . ' days ago';
 });
 
@@ -88,7 +90,7 @@ i18n
 
 ```php
 $dateTime = new DateTime('1988-11-12');
-$dateTime->locale('ru');
+$dateTime->setLocale('ru');
 
 $dateTime->format('j  F  Y'); // output: 12  ноября  1988 
 ```

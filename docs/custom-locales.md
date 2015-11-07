@@ -33,7 +33,7 @@ $config = [
 ];
 
 $datetime = new \rock\date\DateTime('1988-11-12', null, $config);
-$dateTime->locale('fr');
+$dateTime->setLocale('fr');
 
 $dateTime->format('j  F  Y'); // output: 12  novembre  1988
 ```
